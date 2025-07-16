@@ -1,5 +1,6 @@
 const fs = require("fs");
 const { createController } = require("sm-express-server");
+const pool = require("./database.js");
 
 const controllers = {
     getData: createController(async (req, res) => {

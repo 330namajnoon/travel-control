@@ -14,7 +14,7 @@ const controllers = {
           res.status(500).json({ success: false, error: 'Error al obtener los datos' });
         }
     }),
-    setData: createController((req, res) => {
+    setData: createController(async (req, res) => {
         const { totalMoney, moneySpent, moneyRemaining, expenses } = req.body.data;
 
   try {

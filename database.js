@@ -1,12 +1,8 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'sina',
-  host: 'dpg-d1rvpvi4d50c73abp4p0-a',
-  database: 'general_akht',
-  password: 'B0SPERQ2hSQUHolu01N379bbC3OutMIB',
-  port: 5432,
-  ssl: true,
+  connectionString: 'postgresql://sina:B0SPERQ2hSQUHolu01N379bbC3OutMIB@dpg-d1rvpvi4d50c73abp4p0-a.oregon-postgres.render.com/general_akht',
+  ssl: { rejectUnauthorized: false }
 });
 
 module.exports = pool;

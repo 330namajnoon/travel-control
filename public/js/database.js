@@ -5,8 +5,13 @@ const database = {
             if (!response.ok) {
                 throw new Error("Network response was not ok");
             }
-            const data = await response.json();
-            return data;
+            const { data } = await response.json();
+            return {
+                totalMoney: data.total_money,
+                moneySpent: data.money_spent,
+                moneyRemaining: data.money_remaining,
+                expenses: data.expenses || [],
+            };
         } catch (error) {
             console.error("Error fetching data:", error);
             throw error;

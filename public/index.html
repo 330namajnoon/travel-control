@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Travel controll</title>
+	<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+	<div id="root">
+		<div class="header">
+			<h1>Travel controll</h1>
+			<label for="totalMony">
+				Total money: <span><input type="number" id="totalMony" value="10000" min="0" step="1"> €</span>
+			</label>
+			<label for="moneySpent">
+				Money spent: <span><input type="number" id="moneySpent" value="9000" min="0" step="1"> €</span>
+			</label>
+			<label for="moneyRemaining">
+				Money remaining: <span><input type="number" id="moneyRemaining" value="1000" min="0" step="1"> €</span>
+			</label>
+		</div>
+		<div style="display: flex;">
+			<button id="saveChanges">SAVE CHANGES</button>
+			<button id="addExpense">Add new expense</button>
+		</div>
+		<div id="expenses">
+
+		</div>
+		<div id="loading">LOADING</div>
+	</div>
+	<script src="./js/index.js" type="module"></script>
+</body>
+</html>

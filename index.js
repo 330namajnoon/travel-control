@@ -1,18 +1,14 @@
+const path = require("path");
 const { Server, createRouter } = require("sm-express-server");
+const routes = require("./routes.js");
+const bodyParser = require("body-parser");
 
 const port = process.env.PORT || 4005;
-
 const server = new Server(
     port,
-    "./",
-    [],
-    [
-        createRouter("/", (router) => {
-            router.get("/", (req, res) => {
-                res.send("Hello, World!");
-            });
-        }),
-    ]
+    path.join(__dirname, "public"),
+    [bodyParser.json()],
+    [routes]
 );
 
 server.start(() => {

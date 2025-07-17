@@ -79,7 +79,7 @@ import getPrice from "./getPrice.js";
         eurCostLabel.textContent = "Cost (EUR):";
         const eurCostInput = document.createElement("input");
         eurCostInput.type = "number";
-        eurCostInput.value = expense.cost.EUR;
+        eurCostInput.value = expense.cost.EUR.toFixed(2);
         eurCostLabel.appendChild(eurCostInput);
         expenseDiv.appendChild(eurCostLabel);
 

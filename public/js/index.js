@@ -1,35 +1,65 @@
 import database from "./database.js";
 import getPrice from "./getPrice.js";
 
-
 (async () => {
     const search = new URLSearchParams(window.location.search);
     const tlPrice = parseFloat(search?.get("tl") || 0) || (await getPrice.tl()).rates.EUR;
     const irrPrice = parseFloat(search?.get("irr") || 0) || 0.00000970873786407767;
     console.log("TL Price:", tlPrice);
     console.log("IRR Price:", irrPrice);
+
+    const saveChangesButton = document.getElementById("saveChanges");
+
+    const expensesDiv = document.getElementById("expenses");
+    const loading = document.getElementById("loading");
+
+    /**
+     * @type {{expenses: {title: string; description: string; cost: {EUR: number}, fech: string}[], moneyRemaining: number; moneySpent: number; totalMoney: number; walet: {id: string; name: string}[]}}
+     */
+    const data = await database.getData();
+    let data_ = data;
+
+    loading.style.display = "none";
+
     const totalMonyInput = document.getElementById("totalMony");
     const moneyRemainingInput = document.getElementById("moneyRemaining");
     const moneySpentInput = document.getElementById("moneySpent");
 
-    const saveChangesButton = document.getElementById("saveChanges");
+    totalMonyInput.addEventListener("input", () => {
+        data_.totalMoney = parseFloat(totalMonyInput.value);
+        data_.moneyRemaining = data_.totalMoney - data_.moneySpent;
+        moneyRemainingInput.value = data_.moneyRemaining;
+        console.log("Total Money changed to:", data);
+    });
 
-    const loading = document.getElementById("loading");
+    moneyRemainingInput.addEventListener("input", () => {
+        data_.moneyRemaining = parseFloat(moneyRemainingInput.value);
+        data_.moneySpent = data_.totalMoney - data_.moneyRemaining;
+        moneySpentInput.value = data_.moneySpent;
+    });
 
-    /**
-     * @type {{expenses: {title: string; description: string; cost: {EUR: number}, fech: string}[], moneyRemaining: number; moneySpent: number; totalMoney: number}}
-     */
-    const data = await database.getData();
+    moneySpentInput.addEventListener("input", () => {
+        data_.moneySpent = parseFloat(moneySpentInput.value);
+        data_.moneyRemaining = data_.totalMoney - data_.moneySpent;
+        moneyRemainingInput.value = data_.moneyRemaining;
+    });
 
-    loading.style.display = "none";
-
-    function updateInputValues() {
-        data.moneySpent = (data.expenses.reduce((total, expense) => total + expense.cost.EUR, 0)).toFixed(2);
-        data.moneyRemaining = (data.totalMoney - data.moneySpent).toFixed(2);
-    
-        totalMonyInput.value = data.totalMoney;
-        moneySpentInput.value = data.moneySpent;
-        moneyRemainingInput.value = data.moneyRemaining;
+    function updateInputValues(d) {
+        data_ = d;
+        if (!d.expenses) {
+            const expenses = data.expenses.filter((expense) => (expense.walet || []).some((w) => w.id === d.id));
+            d.moneySpent = expenses.reduce((total, expense) => total + expense.cost.EUR, 0).toFixed(2);
+            d.moneyRemaining = (d.totalMoney - d.moneySpent).toFixed(2);
+            totalMonyInput.value = d.totalMoney;
+            moneySpentInput.value = d.moneySpent;
+            moneyRemainingInput.value = d.moneyRemaining;
+        } else {
+            d.moneySpent = d.expenses.reduce((total, expense) => total + expense.cost.EUR, 0).toFixed(2);
+            d.moneyRemaining = (d.totalMoney - d.moneySpent).toFixed(2);
+            totalMonyInput.value = d.totalMoney;
+            moneySpentInput.value = d.moneySpent;
+            moneyRemainingInput.value = d.moneyRemaining;
+        }
     }
 
     function createExpense(expense, parent) {
@@ -105,20 +135,69 @@ import getPrice from "./getPrice.js";
             expense.cost.EUR = parseFloat(eurCostInput.value);
             tlCostInput.value = (expense.cost.EUR / tlPrice).toFixed(2);
             irrCostInput.value = (expense.cost.EUR / irrPrice).toFixed(2);
-            updateInputValues();
+            updateInputValues(data);
         });
         tlCostInput.addEventListener("input", () => {
             expense.cost.EUR = parseFloat(tlCostInput.value) * tlPrice;
             eurCostInput.value = expense.cost.EUR.toFixed(2);
             irrCostInput.value = (expense.cost.EUR / irrPrice).toFixed(2);
-            updateInputValues();
+            updateInputValues(data);
         });
         irrCostInput.addEventListener("input", () => {
             expense.cost.EUR = parseFloat(irrCostInput.value) * irrPrice;
             eurCostInput.value = expense.cost.EUR.toFixed(2);
             tlCostInput.value = (expense.cost.EUR / tlPrice).toFixed(2);
-            updateInputValues();
+            updateInputValues(data);
         });
+
+        const waletLabel = document.createElement("label");
+        waletLabel.className = "expense-walet-title";
+        waletLabel.textContent = "Add to new wallet:";
+        const waletSelect = document.createElement("select");
+        waletSelect.className = "walet-select";
+        const selectOption = document.createElement("option");
+        selectOption.value = "0";
+        selectOption.textContent = "Select a wallet";
+        waletSelect.appendChild(selectOption);
+
+        data.walet.forEach((walet) => {
+            const option = document.createElement("option");
+            option.className = "walet-option";
+            option.value = walet.id;
+            option.textContent = walet.name;
+            waletSelect.appendChild(option);
+        });
+        waletSelect.addEventListener("input", (event) => {
+            const selectedWaletId = parseInt(event.target.value);
+            if (selectedWaletId > 0) {
+                const selectedWalet = data.walet.find((w) => w.id === selectedWaletId);
+                if (selectedWalet && !expense?.walet?.some?.((w) => w.id === selectedWalet.id)) {
+                    expense.walet = [selectedWalet, ...(expense.walet || [])];
+                    waletSelect.value = "0";
+                    renderExpenses(data.expenses);
+                }
+            }
+        });
+        waletLabel.appendChild(waletSelect);
+        expense?.walet?.forEach?.((w) => {
+            const option = document.createElement("button");
+            option.value = w.id;
+            option.textContent = w.name;
+            option.addEventListener("click", () => {
+                // preguntar al usuario si desea eliminar el wallet de la expense
+                const confirmDelete = window.confirm(`Are you sure you want to remove ${w.name} from this expense?`);
+                if (confirmDelete) {
+                    expense.walet = expense.walet.filter((wallet) => wallet.id !== w.id);
+                    waletLabel.removeChild(option);
+                    const d = parseInt(document.getElementById("walets").value);
+                    console.log(d)
+                    renderExpenses(d > 0 ? data.expenses.filter((expense) => (expense?.walet || []).some((w) => w.id === d)) : data.expenses);
+                    updateInputValues(data_);
+                }
+            });
+            waletLabel.appendChild(option);
+        });
+        expenseDiv.appendChild(waletLabel);
 
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete Expense";
@@ -135,29 +214,13 @@ import getPrice from "./getPrice.js";
         return expenseDiv;
     }
 
-    updateInputValues();
+    updateInputValues(data);
 
-    totalMonyInput.addEventListener("input", () => {
-        data.totalMoney = parseFloat(totalMonyInput.value);
-		data.moneyRemaining = data.totalMoney - data.moneySpent;
-		moneyRemainingInput.value = data.moneyRemaining;
-    });
-
-    moneyRemainingInput.addEventListener("input", () => {
-        data.moneyRemaining = parseFloat(moneyRemainingInput.value);
-		data.moneySpent = data.totalMoney - data.moneyRemaining;
-		moneySpentInput.value = data.moneySpent;
-    });
-
-    moneySpentInput.addEventListener("input", () => {
-        data.moneySpent = parseFloat(moneySpentInput.value);
-		data.moneyRemaining = data.totalMoney - data.moneySpent;
-		moneyRemainingInput.value = data.moneyRemaining;
-    });
 
     saveChangesButton.addEventListener("click", async () => {
         loading.style.display = "flex";
         try {
+            console.log(data);
             await database.setData(data);
         } catch (error) {
             alert("Error saving changes: " + error.message);
@@ -165,8 +228,6 @@ import getPrice from "./getPrice.js";
             loading.style.display = "none";
         }
     });
-
-    const expensesDiv = document.getElementById("expenses");
 
     const addExpenseButton = document.getElementById("addExpense");
     addExpenseButton.addEventListener("click", () => {
@@ -180,7 +241,78 @@ import getPrice from "./getPrice.js";
         expensesDiv.insertBefore(createExpense(newExpense), expensesDiv.firstChild);
     });
 
-    data.expenses.forEach((expense) => expensesDiv.appendChild(createExpense(expense, expensesDiv)));
+    function renderExpenses(expenses) {
+        expensesDiv.innerHTML = "";
+        expenses.forEach((expense) => {
+            expensesDiv.appendChild(createExpense(expense, expensesDiv));
+        });
+    }
 
+    function renderWalet() {
+        const waletsSelect = document.getElementById("walets");
+        waletsSelect.innerHTML = "";
+        const selectOption = document.createElement("option");
+        selectOption.value = "0";
+        selectOption.textContent = "Select a wallet";
+        waletsSelect.appendChild(selectOption);
+        data.walet.forEach((walet) => {
+            const option = document.createElement("option");
+            option.value = walet.id;
+            option.textContent = walet.name;
+            waletsSelect.appendChild(option);
+        });
+        waletsSelect.addEventListener("input", (event) => {
+            const selectedWaletId = parseInt(event.target.value);
+            if (selectedWaletId === 0) {
+                renderExpenses(data.expenses);
+                updateInputValues(data);
+                return;
+            }
+            const selectedWalet = data.walet.find((w) => w.id === selectedWaletId);
+            const expenses = data.expenses.filter((expense) =>
+                (expense.walet || []).some((w) => w.id === selectedWalet.id)
+            );
+            updateInputValues(selectedWalet);
+            renderExpenses(expenses);
+        });
+    }
+
+    renderExpenses(data.expenses);
+
+    const addWaletButton = document.getElementById("addWallet");
+    addWaletButton.addEventListener("click", () => {
+        const prompt = window.prompt("Enter the name of the new wallet:");
+        const newWalet = {
+            id: Date.now(),
+            name: prompt || "New Wallet",
+            totalMoney: 0,
+            moneySpent: 0,
+            moneyRemaining: 0,
+        };
+        data.walet.unshift(newWalet);
+        renderWalet();
+        renderExpenses(data.expenses);
+    });
+
+    const deleteWaletButton = document.getElementById("deleteWallet");
+    deleteWaletButton.addEventListener("click", () => {
+        const selectedWaletId = parseInt(document.getElementById("walets").value);
+        if (selectedWaletId === 0) {
+            alert("Please select a wallet to delete.");
+            return;
+        }
+        const confirmDelete = window.confirm("Are you sure you want to delete this wallet?");
+        if (confirmDelete) {
+            data.walet = data.walet.filter((w) => w.id !== selectedWaletId);
+            data.expenses.forEach((expense) => {
+                expense.walet = (expense.walet || []).filter((w) => w.id !== selectedWaletId);
+            });
+            renderWalet();
+            renderExpenses(data.expenses);
+            updateInputValues(data);
+        }
+    });
+
+    renderWalet();
     console.log(data);
 })();

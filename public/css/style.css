@@ -103,6 +103,36 @@ body {
 	gap: 10px;
 }
 
+.expense-walet-title {
+	display: flex;
+	font-size: small;
+	gap: 5px;
+	flex-wrap: wrap;
+	
+}
+
+.expense-walet-title select {
+	width: 100%;
+	padding: 5px;
+	border: 0;
+	border-radius: 5px;
+	background-color: #b0abab;
+	color: #ffffff;
+}
+
+.expense-walet-title button {
+	width: auto;
+	padding: 5px 10px;
+	border: 0;
+	border-radius: 5px;
+	background-color: #797474;
+	color: #ffffff;
+}
+
+.expense-title label {
+	font-weight: bold;
+	margin-bottom: 5px;
+}
 .expense-title {
 	display: flex;
 	flex-direction: column;
@@ -143,4 +173,46 @@ body {
 	border-radius: 5px;
 	cursor: pointer;
 	font-weight: bold;
+}
+
+#walets {
+	width: 100%;
+	padding: 5px;
+	background-color: white;
+	border: 0;
+	border-radius: 5px;
+}
+
+#addWallet {
+	box-sizing: border-box;
+	padding: 5px 10px;
+	background-color: #09710c;
+	border: solid 0px #055008;
+	font-weight: bold;
+	font-size: small;
+	color: #ffffff;
+	border-radius: 5px;
+	border: 0;
+	width: 30%;
+}
+
+#deleteWallet {
+	box-sizing: border-box;
+	padding: 5px 10px;
+	background-color: #710925;
+	border: solid 0px #50052d;
+	font-weight: bold;
+	font-size: small;
+	color: #ffffff;
+	border-radius: 5px;
+	border: 0;
+	width: 30%;
+}
+
+.walet-option {
+	padding: 5px;
+	border: 0;
+	border-radius: 10px;
+	background-color: #f0f0f0;
+	color: #333;
 }

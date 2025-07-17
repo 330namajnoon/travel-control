@@ -14,11 +14,12 @@ const controllers = {
             total_money: 0,
             money_spent: 0,
             money_remaining: 0,
-            expenses: []
+            expenses: [],
+            walet: {}
           };
     
           const insertQuery = `
-            INSERT INTO travelcontroll (total_money, money_spent, money_remaining, expenses)
+            INSERT INTO travelcontroll (total_money, money_spent, money_remaining, expenses, walet)
             VALUES ($1, $2, $3, $4)
             RETURNING *;
           `;
@@ -26,7 +27,8 @@ const controllers = {
             defaultData.total_money,
             defaultData.money_spent,
             defaultData.money_remaining,
-            JSON.stringify(defaultData.expenses)
+            JSON.stringify(defaultData.expenses),
+            JSON.stringify(defaultData.walet)
           ];
     
           const insertResult = await client.query(insertQuery, insertValues);
@@ -41,17 +43,17 @@ const controllers = {
       }
     }),
     setData: createController(async (req, res) => {
-        const { totalMoney, moneySpent, moneyRemaining, expenses } = req.body.data;
+        const { totalMoney, moneySpent, moneyRemaining, expenses, walet } = req.body.data;
         
 
   try {
     const client = await pool.connect();
     const insertQuery = `
-      INSERT INTO travelcontroll (total_money, money_spent, money_remaining, expenses)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO travelcontroll (total_money, money_spent, money_remaining, expenses, walet)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *;
     `;
-    const values = [totalMoney, moneySpent, moneyRemaining, JSON.stringify(expenses)];
+    const values = [totalMoney, moneySpent, moneyRemaining, JSON.stringify(expenses), JSON.stringify(walet)];
     const result = await client.query(insertQuery, values);
     client.release();
     res.status(201).json({ success: true, data: result.rows[0] });

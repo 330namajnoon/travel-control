@@ -22,7 +22,8 @@ async function createTravelControlTable() {
         total_money REAL,
         money_spent REAL,
         money_remaining REAL,
-        expenses JSONB
+        expenses JSONB,
+        walet JSONB
       );
     `;
     await client.query(query);

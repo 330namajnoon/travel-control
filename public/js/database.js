@@ -11,6 +11,7 @@ const database = {
                 moneySpent: data.money_spent,
                 moneyRemaining: data.money_remaining,
                 expenses: data.expenses || [],
+                walet: data.walet,
             };
         } catch (error) {
             console.error("Error fetching data:", error);

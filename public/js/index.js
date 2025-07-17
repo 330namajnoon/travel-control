@@ -4,7 +4,7 @@ import getPrice from "./getPrice.js";
 
 (async () => {
     const tlPrice = await getPrice.tl();
-    const irrPrice = 0.00097;
+    const irrPrice = 0.00000970873786407767;
 
     const totalMonyInput = document.getElementById("totalMony");
     const moneyRemainingInput = document.getElementById("moneyRemaining");
@@ -13,6 +13,22 @@ import getPrice from "./getPrice.js";
     const saveChangesButton = document.getElementById("saveChanges");
 
     const loading = document.getElementById("loading");
+
+    /**
+     * @type {{expenses: {title: string; description: string; cost: {EUR: number}, fech: string}[], moneyRemaining: number; moneySpent: number; totalMoney: number}}
+     */
+    const data = await database.getData();
+
+    loading.style.display = "none";
+
+    function updateInputValues() {
+        data.moneySpent = (data.expenses.reduce((total, expense) => total + expense.cost.EUR, 0)).toFixed(2);
+        data.moneyRemaining = (data.totalMoney - data.moneySpent).toFixed(2);
+    
+        totalMonyInput.value = data.totalMoney;
+        moneySpentInput.value = data.moneySpent;
+        moneyRemainingInput.value = data.moneyRemaining;
+    }
 
     function createExpense(expense, parent) {
         const expenseDiv = document.createElement("div");
@@ -87,16 +103,19 @@ import getPrice from "./getPrice.js";
             expense.cost.EUR = parseFloat(eurCostInput.value);
             tlCostInput.value = (expense.cost.EUR / tlPrice.rates.EUR).toFixed(2);
             irrCostInput.value = (expense.cost.EUR / irrPrice).toFixed(2);
+            updateInputValues();
         });
         tlCostInput.addEventListener("input", () => {
             expense.cost.EUR = parseFloat(tlCostInput.value) * tlPrice.rates.EUR;
             eurCostInput.value = expense.cost.EUR.toFixed(2);
             irrCostInput.value = (expense.cost.EUR / irrPrice).toFixed(2);
+            updateInputValues();
         });
         irrCostInput.addEventListener("input", () => {
             expense.cost.EUR = parseFloat(irrCostInput.value) * irrPrice;
             eurCostInput.value = expense.cost.EUR.toFixed(2);
             tlCostInput.value = (expense.cost.EUR / tlPrice.rates.EUR).toFixed(2);
+            updateInputValues();
         });
 
         const deleteButton = document.createElement("button");
@@ -114,19 +133,7 @@ import getPrice from "./getPrice.js";
         return expenseDiv;
     }
 
-    /**
-     * @type {{expenses: {title: string; description: string; cost: {EUR: number}, fech: string}[], moneyRemaining: number; moneySpent: number; totalMoney: number}}
-     */
-    const data = await database.getData();
-
-    loading.style.display = "none";
-
-	data.moneySpent = data.expenses.reduce((total, expense) => total + expense.cost.EUR, 0);
-	data.moneyRemaining = data.totalMoney - data.moneySpent;
-
-    totalMonyInput.value = data.totalMoney;
-    moneySpentInput.value = data.moneySpent;
-    moneyRemainingInput.value = data.moneyRemaining;
+    updateInputValues();
 
     totalMonyInput.addEventListener("input", () => {
         data.totalMoney = parseFloat(totalMonyInput.value);

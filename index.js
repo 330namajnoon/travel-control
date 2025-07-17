@@ -19,9 +19,9 @@ async function createTravelControlTable() {
     const query = `
       CREATE TABLE IF NOT EXISTS travelcontroll (
         id SERIAL PRIMARY KEY,
-        total_money INTEGER,
-        money_spent INTEGER,
-        money_remaining INTEGER,
+        total_money REAL,
+        money_spent REAL,
+        money_remaining REAL,
         expenses JSONB
       );
     `;

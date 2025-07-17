@@ -3,9 +3,11 @@ import getPrice from "./getPrice.js";
 
 
 (async () => {
-    const tlPrice = await getPrice.tl();
-    const irrPrice = 0.00000970873786407767;
-
+    const search = new URLSearchParams(window.location.search);
+    const tlPrice = parseFloat(search?.get("tl") || 0) || (await getPrice.tl()).rates.EUR;
+    const irrPrice = parseFloat(search?.get("irr") || 0) || 0.00000970873786407767;
+    console.log("TL Price:", tlPrice);
+    console.log("IRR Price:", irrPrice);
     const totalMonyInput = document.getElementById("totalMony");
     const moneyRemainingInput = document.getElementById("moneyRemaining");
     const moneySpentInput = document.getElementById("moneySpent");
@@ -86,7 +88,7 @@ import getPrice from "./getPrice.js";
         tlCostLabel.textContent = "Cost (TL):";
         const tlCostInput = document.createElement("input");
         tlCostInput.type = "number";
-        tlCostInput.value = (expense.cost.EUR / tlPrice.rates.EUR).toFixed(2);
+        tlCostInput.value = (expense.cost.EUR / tlPrice).toFixed(2);
         tlCostLabel.appendChild(tlCostInput);
         expenseDiv.appendChild(tlCostLabel);
 
@@ -101,12 +103,12 @@ import getPrice from "./getPrice.js";
 
         eurCostInput.addEventListener("input", () => {
             expense.cost.EUR = parseFloat(eurCostInput.value);
-            tlCostInput.value = (expense.cost.EUR / tlPrice.rates.EUR).toFixed(2);
+            tlCostInput.value = (expense.cost.EUR / tlPrice).toFixed(2);
             irrCostInput.value = (expense.cost.EUR / irrPrice).toFixed(2);
             updateInputValues();
         });
         tlCostInput.addEventListener("input", () => {
-            expense.cost.EUR = parseFloat(tlCostInput.value) * tlPrice.rates.EUR;
+            expense.cost.EUR = parseFloat(tlCostInput.value) * tlPrice;
             eurCostInput.value = expense.cost.EUR.toFixed(2);
             irrCostInput.value = (expense.cost.EUR / irrPrice).toFixed(2);
             updateInputValues();
@@ -114,7 +116,7 @@ import getPrice from "./getPrice.js";
         irrCostInput.addEventListener("input", () => {
             expense.cost.EUR = parseFloat(irrCostInput.value) * irrPrice;
             eurCostInput.value = expense.cost.EUR.toFixed(2);
-            tlCostInput.value = (expense.cost.EUR / tlPrice.rates.EUR).toFixed(2);
+            tlCostInput.value = (expense.cost.EUR / tlPrice).toFixed(2);
             updateInputValues();
         });
 
